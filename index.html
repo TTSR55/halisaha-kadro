@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Halı Saha Kadro Kur</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<!--  🔹 YAN PANEL  -->
+<aside id="sidebar">
+    <button id="newMatchBtn"
+        style="margin-top:0.5rem;width:100%;background:#044;color:#fff">
+  Yeni Maç Oluştur
+</button>
+    <h3>Kadroyu Kaydet / Yükle</h3>
+  
+    <input id="saveName" placeholder="Kayıt adı">
+    <button id="createBtn">Yeni Kayıt</button>
+    <button id="updateBtn" style="display:none">Güncelle</button>
+  
+    <ul id="savesList"></ul>   <!-- dinamik kayıt listesi -->
+
+  </aside>
+
+<section class="teams">
+  <!-- HOME TEAM -->
+  <div class="team-card team-home">
+    <h2>Mavi Takım – <span class="blue">Mavi</span></h2>
+
+    <div class="team-content">
+      <!-- 1) Kontroller -->
+      <div class="team-controls">
+        <div class="formation-panel">
+          <label for="formationHome">Taktik:</label>
+          <select id="formationHome" class="formation-select">
+            <option value="3-2-1">3-2-1</option>
+            <!-- … diğer seçenekler … -->
+          </select>
+        </div>
+
+        <form data-team="home" class="player-form">
+          <input type="text" name="name" placeholder="Oyuncu adı" required>
+          <select name="pos">
+            <option value="K">Kaleci</option>
+            <option value="D">Defans</option>
+            <option value="O">Orta Saha</option>
+            <option value="F">Forvet</option>
+          </select>
+          <button type="submit">Ekle</button>
+          <small class="msg"></small>
+        </form>
+
+        <ul class="roster" id="homeList"></ul>
+        <button class="clear-all-btn" data-team="home">Tümünü Sil</button>
+      </div> <!-- /.team-controls -->
+
+      <!-- 2) Saha -->
+      <div class="team-field">
+        <canvas id="homePitch" width="300" height="450"></canvas>
+      </div> <!-- /.team-field -->
+
+    </div> <!-- /.team-content -->
+  </div> <!-- /.team-card -->
+
+  <!-- AWAY TEAM -->
+  <div class="team-card team-away">
+    <h2>Kırmızı Takım – <span class="red">Kırmızı</span></h2>
+
+    <div class="team-content">
+      <div class="team-controls">
+        <div class="formation-panel">
+          <label for="formationAway">Taktik:</label>
+          <select id="formationAway" class="formation-select">
+            <option value="3-2-1">3-2-1</option>
+            <!-- … diğer seçenekler … -->
+          </select>
+        </div>
+
+        <form data-team="away" class="player-form">
+          <input type="text" name="name" placeholder="Oyuncu adı" required>
+          <select name="pos">
+            <option value="K">Kaleci</option>
+            <option value="D">Defans</option>
+            <option value="O">Orta Saha</option>
+            <option value="F">Forvet</option>
+          </select>
+          <button type="submit">Ekle</button>
+          <small class="msg"></small>
+        </form>
+
+        <ul class="roster" id="awayList"></ul>
+        <button class="clear-all-btn" data-team="away">Tümünü Sil</button>
+      </div> <!-- /.team-controls -->
+
+      <div class="team-field">
+        <canvas id="awayPitch" width="300" height="450"></canvas>
+      </div> <!-- /.team-field -->
+
+    </div> <!-- /.team-content -->
+  </div> <!-- /.team-card -->
+</section>
+
+<script src="app.js"></script>
+</body>
+</html>
