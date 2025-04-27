@@ -4,10 +4,35 @@ const teams  = {
   home: { color:'#44aaff', list:[] },
   away: { color:'#ff5555', list:[] }
 };
-// --- Çoklu kayıt deposu ---
-let rosters = JSON.parse(localStorage.getItem('rosters') || '{}');
+// --- JSONBin.io config ---
+const BIN_ID = "680e60978960c979a58e604b";              // replace with your JSONBin Bin ID
+const MASTER_KEY = "$2a$10$aSBzxpgAqKfr79R5Wo4vteH9/K3RBBoL2N641/RdnlUq4WcAHJe2m";      // replace with your JSONBin X-Master-Key
+
+// in-memory rosters object
+let rosters = {};
 // --- O anki açık kayıt anahtarı ---
 let currentSave = null;
+
+// Read all rosters from JSONBin
+async function readBin() {
+  const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+    headers: { "X-Master-Key": MASTER_KEY }
+  });
+  const json = await res.json();
+  return json.record.rosters || {};
+}
+
+// Write the entire rosters object back to JSONBin
+async function writeBin() {
+  await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Master-Key": MASTER_KEY
+    },
+    body: JSON.stringify({ rosters })
+  });
+}
 
 // --- Sayfa açılışında boş kadro göster ---
 ['home','away'].forEach(t => { renderRoster(t); drawPitch(t); });
@@ -143,10 +168,17 @@ function fullPos(p){ return {K:'Kaleci',D:'Defans',O:'Orta',F:'Forvet'}[p]; }
 
 // --- Kaydet / Yükle yardımcıları ---
 
-function refreshSaves(){
-  if(!savesList) return;
+async function refreshSaves(){
+  if (!savesList) return;
+  // load latest rosters from JSONBin
+  rosters = await readBin();
   savesList.innerHTML = Object.keys(rosters)
-    .map(k => `<li data-save="${k}">${k}</li>`).join('');
+    .map(k => `
+      <li data-save="${k}">
+        <span class="save-name">${k}</span>
+        <span class="save-del" data-save="${k}" style="color:#f55;cursor:pointer;margin-left:0.5rem;">🗑️</span>
+      </li>
+    `).join('');
 }
 
 // Yan panel öğeleri
@@ -189,23 +221,23 @@ document.querySelectorAll('.clear-all-btn').forEach(btn => {
 
 // --- Kayıt yönetimi: Yeni Kayıt, Güncelle, Yeni Maç, Yükle ---
 // Yeni Kayıt
-createBtn.onclick = () => {
+createBtn.onclick = async () => {
   const name = saveNameEl.value.trim();
   if (!name) return alert('Kayıt adı boş olamaz!');
   rosters[name] = JSON.parse(JSON.stringify(teams));
-  localStorage.setItem('rosters', JSON.stringify(rosters));
-  refreshSaves();
+  await writeBin();           // save to JSONBin
+  await refreshSaves();
   currentSave = name;
   createBtn.style.display = 'none';
   updateBtn.style.display = 'inline-block';
 };
 
 // Güncelle
-updateBtn.onclick = () => {
+updateBtn.onclick = async () => {
   if (!currentSave) return;
   rosters[currentSave] = JSON.parse(JSON.stringify(teams));
-  localStorage.setItem('rosters', JSON.stringify(rosters));
-  refreshSaves();
+  await writeBin();           // update JSONBin
+  await refreshSaves();
   alert(`'${currentSave}' güncellendi.`);
 };
 
@@ -232,5 +264,26 @@ savesList.addEventListener('click', e => {
   updateBtn.style.display = 'inline-block';
 });
 
-// İlk sefer listeyi doldur
+// Save List Delete click
+savesList.addEventListener('click', async e => {
+  if (!e.target.matches('.save-del')) return;
+  const key = e.target.dataset.save;
+  if (!key || !rosters[key]) return;
+  if (!confirm(`'${key}' kaydını silmek istediğine emin misin?`)) return;
+  // Remove from memory and JSONBin
+  delete rosters[key];
+  await writeBin();
+  await refreshSaves();
+  // If current was deleted, reset UI
+  if (currentSave === key) {
+    currentSave = null;
+    saveNameEl.value = '';
+    createBtn.style.display = 'inline-block';
+    updateBtn.style.display = 'none';
+    // also clear fields
+    newMatchBtn.click();
+  }
+});
+
+// İlk sefer JSONBin’den listeyi doldur
 refreshSaves();
